@@ -86,7 +86,7 @@ begin
 	replace!(train.payday, missing => 0)
 	# 降水量で、値がない日"--"を -1 で置き換え。
 	replace!(train.precipitation, "--" => "-1")
-	train.precipitation |> x -> parse.(Float64, x)
+	train.precipitation = train.precipitation |> x -> parse.(Float64, x)
 	# イベントのない日を "なし" で置き換え。
 	replace!(train.event, missing => "なし")
 	# 特記事項に記載がない場合は "なし" で置き換え。
@@ -109,7 +109,7 @@ let
 
 	ax1.xlabel = "datetime"
 	ax1.ylabel = "販売数"
-	lines!(ax1, datetime2rata.(train.datetime), train.y)
+	lines!(ax1, datetime2rata.(train.datetime), train.y, color=:blue)
 	ax1.xticks[] = (datetime2rata.(dateticks) , Dates.format.(dateticks, "yyyy-mm"));
 
 	fig
@@ -123,9 +123,126 @@ md"
 "
 
 # ╔═╡ 67479d56-9674-4cbc-9504-1b7e966a185f
+let
+	features = [:soldout, :kcal, :precipitation, :payday, :temperature, :month]
+	
+	fig = Figure(backgroundcolor=:gray95, resolution=(950, 700))
+	grid = fig[1,1] = GridLayout()
+	axes = [Axis(grid[i, j]) for i in 1:2, j in 1:3]
 
+	for i in 1:length(features)
+		axes[i].ylabel = "y"
+		axes[i].xlabel = string(features[i])
+		scatter!(axes[i], train[:, features[i]], train.y)
+	end
+	for i in 1:2, j in 1:3
+	  	colgap!(grid, 10)
+	 	rowgap!(grid, 10)
+	end
+	fig
+end
+
+# ╔═╡ 9aa50202-d052-45ca-b157-07193ae764fb
+md"
+- 目的変数と説明変数（数値変数）との散布図の確認
+- 月及び気温は売上数と相関が高そうだが、日数が経過するにつれて減衰している性質がある為、代替変数である可能性が高い → 別の説明変数が存在する？
+"
+
+# ╔═╡ 6329f98a-c0cb-4c98-9763-c145dcb4f96c
+let
+	features = [:week, :remarks, :weather, :event]
+	
+	fig = Figure(backgroundcolor=:gray95, resolution=(750, 700))
+	grid = fig[1,1] = GridLayout()
+	# axes = [Axis(grid[i, j]) for i in 1:2, j in 1:2]
+
+	axes = Axis(grid[1,1])
+
+	axes.xlabel = "曜日"
+	axes.xticks = (1:5, ["月", "火", "水", "木", "金"])
+	
+	boxplot!(axes, train.week_num, train.y, color=(:blue, 0.5), show_notch=true)
+	# for i in 1:length(features)
+	# 	axes[i].ylabel = "y"
+	# 	axes[i].xlabel = string(features[i])
+	# 	boxplot!(axes[i], fill(i, length(train[:,features[i]])), train.y)
+	# end
+	# for i in 1:2, j in 1:2
+	#   	colgap!(grid, 10)
+	#  	rowgap!(grid, 10)
+	# end
+	fig
+end
+
+# ╔═╡ 9753c561-624f-46f2-8ad9-559c49626ee1
+
+
+# ╔═╡ 41b9f552-b7c9-4904-a932-c83626665d3f
+jp_dow = Dict(
+	"月" => 1,
+	"火" => 2,
+	"水" => 3,
+	"木" => 4,
+	"金" => 5,
+	"土" => 6,
+	"日" => 7
+)
+
+# ╔═╡ 9ede8233-1d93-44e1-8f26-eccfc278298a
+length(jp_dow)
+
+# ╔═╡ 4c94a4f4-63de-40f3-b3c4-f087c212a76a
+
+
+# ╔═╡ 4d3bd6c5-c311-4206-a1a7-db00b53e0606
+
+
+# ╔═╡ d0f877f1-cf69-46a5-8d81-6c3e5aed3406
+function change_jp_dow(week)
+	jp_dow = Dict(
+		"月" => 1,
+		"火" => 2,
+		"水" => 3,
+		"木" => 4,
+		"金" => 5,
+		"土" => 6,
+		"日" => 7
+	)
+
+	return jp_dow[week]
+end
+
+# ╔═╡ fb66f41b-a3f1-4121-b071-de35ab5f533c
+train.week_num = change_jp_dow.(train.week)
+
+# ╔═╡ 63b687ae-c7bd-479e-b5d1-b8fb83dac9d4
+
+
+# ╔═╡ 13f958de-2505-465f-8736-f923e1c0fe41
+
+
+# ╔═╡ 3b1e7563-ddc0-491e-bcce-33972c9762dd
+
+
+# ╔═╡ ba69b9d0-30d0-43b6-8efc-467327fed6cd
+
+
+# ╔═╡ 33641a6f-164d-4476-ab36-cf778359c93e
+
+
+# ╔═╡ 3d7b6575-c750-43ab-933d-50d21b12f05b
+
+
+# ╔═╡ c951692e-5f23-4fb6-a139-bc26a1d290c4
+
+
+# ╔═╡ 27a476fb-d8a5-427a-a352-41e6d906f007
+x = rand(1:3, 100)
 
 # ╔═╡ 19d52cc1-d9eb-48b6-b7b9-55b19e6f620c
+
+
+# ╔═╡ f0725372-ddad-4ab7-911c-4bf3d25f2f5e
 
 
 # ╔═╡ 3f023399-198b-4bae-a125-e754f85d886b
@@ -153,6 +270,15 @@ md"
 
 
 # ╔═╡ 1e8113ee-7fa2-4411-9897-a2c245163921
+
+
+# ╔═╡ 5f9f6556-19ba-4ddc-81de-03b2c0da8315
+
+
+# ╔═╡ 881f1520-f0b4-499b-b11a-d76fc04c7b38
+
+
+# ╔═╡ 293ad1b5-4d78-4809-a568-668e45ff02b6
 
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -1420,9 +1546,27 @@ version = "3.5.0+0"
 # ╠═b54cda86-3429-4d2b-bd3b-8144b0e8e5ea
 # ╠═316e532c-2e4a-4b50-b272-a8bd8637cfdd
 # ╠═4066b457-f673-4293-979e-71bd93ee0c38
-# ╠═398564e9-b275-41aa-91db-171dacc6c826
+# ╟─398564e9-b275-41aa-91db-171dacc6c826
 # ╠═67479d56-9674-4cbc-9504-1b7e966a185f
+# ╟─9aa50202-d052-45ca-b157-07193ae764fb
+# ╠═6329f98a-c0cb-4c98-9763-c145dcb4f96c
+# ╠═9753c561-624f-46f2-8ad9-559c49626ee1
+# ╠═41b9f552-b7c9-4904-a932-c83626665d3f
+# ╠═9ede8233-1d93-44e1-8f26-eccfc278298a
+# ╠═4c94a4f4-63de-40f3-b3c4-f087c212a76a
+# ╠═4d3bd6c5-c311-4206-a1a7-db00b53e0606
+# ╠═d0f877f1-cf69-46a5-8d81-6c3e5aed3406
+# ╠═fb66f41b-a3f1-4121-b071-de35ab5f533c
+# ╠═63b687ae-c7bd-479e-b5d1-b8fb83dac9d4
+# ╠═13f958de-2505-465f-8736-f923e1c0fe41
+# ╠═3b1e7563-ddc0-491e-bcce-33972c9762dd
+# ╠═ba69b9d0-30d0-43b6-8efc-467327fed6cd
+# ╠═33641a6f-164d-4476-ab36-cf778359c93e
+# ╠═3d7b6575-c750-43ab-933d-50d21b12f05b
+# ╠═c951692e-5f23-4fb6-a139-bc26a1d290c4
+# ╠═27a476fb-d8a5-427a-a352-41e6d906f007
 # ╠═19d52cc1-d9eb-48b6-b7b9-55b19e6f620c
+# ╠═f0725372-ddad-4ab7-911c-4bf3d25f2f5e
 # ╠═3f023399-198b-4bae-a125-e754f85d886b
 # ╠═de1b5038-c20e-4531-8891-5c1ddd1c5fd8
 # ╠═a79998bf-d7de-4f79-b065-cf6ceb60ec85
@@ -1432,5 +1576,8 @@ version = "3.5.0+0"
 # ╠═505afdde-55ed-4c1a-9010-be2046c6b048
 # ╠═25a08838-0495-4650-91c7-4afd4fbc093e
 # ╠═1e8113ee-7fa2-4411-9897-a2c245163921
+# ╠═5f9f6556-19ba-4ddc-81de-03b2c0da8315
+# ╠═881f1520-f0b4-499b-b11a-d76fc04c7b38
+# ╠═293ad1b5-4d78-4809-a568-668e45ff02b6
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
